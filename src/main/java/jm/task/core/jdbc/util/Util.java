@@ -1,23 +1,56 @@
 package jm.task.core.jdbc.util;
 
+import jm.task.core.jdbc.model.User;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.*;
+import java.util.Properties;
 
 public class Util {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/users";
-    private static final String USER = "root";
+    private static final String URL = "jdbc:mysql://localhost:3306/pp-1.1.4";
+    private static final String USERNAME = "root";
     private static final String PASSWORD = "root";
 
-    public static Connection getConnection() {
+    private static final SessionFactory concreteSessionFactory;
+
+
+    static{
+        try{
+            Properties prop = new Properties();
+            prop.setProperty("hibernate.connection.url", URL);
+            prop.setProperty("hibernate.connection.username", USERNAME);
+            prop.setProperty("hibernate.connection.password", PASSWORD);
+            prop.setProperty("current_session_context_class", "thread");
+            prop.setProperty("dialect", "org.hibernate.dialect.MySQLDialect");
+
+            concreteSessionFactory = new org.hibernate.cfg.Configuration().addProperties(prop)
+                    .addProperties(prop)
+                    .addAnnotatedClass(User.class)
+                    .buildSessionFactory();
+
+        } catch (Exception ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
+
+
+    public static Session getSession() throws HibernateException {
+        return concreteSessionFactory.openSession();
+    }
+
+    public static Connection getConnection () {
         Connection connection = null;
         try {
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-        } catch (SQLException e) {
-            e.printStackTrace();
+            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        } catch (SQLException e){
+            throw new RuntimeException();
         }
         return connection;
     }
